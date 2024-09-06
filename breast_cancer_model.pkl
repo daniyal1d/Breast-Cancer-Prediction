@@ -1,0 +1,116 @@
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
+import sklearn.datasets # type: ignore
+from sklearn.model_selection import train_test_split # type: ignore
+from sklearn.linear_model import LogisticRegression # type: ignore
+from sklearn.metrics import accuracy_score # type: ignore
+import pickle
+
+"""**Data COllection And Processing**"""
+
+# Loading the data
+bcdata=sklearn.datasets.load_breast_cancer()
+
+print(bcdata)
+
+# Loading the data
+bdata=pd.DataFrame(bcdata.data, columns = bcdata.feature_names)
+
+# printing the data
+bdata.head(10)
+
+# adding the data to bdata
+bdata['diagnosis'] = bcdata.target
+
+bdata.head(10)
+
+# Now we will find the number of rows and columns
+bdata.shape
+
+# now we see the information about the data set
+bdata.info()
+
+# Statistical measures
+bdata.describe()
+
+# Cheacking the target variables
+bdata['diagnosis'].value_counts()
+
+"""**1 --> Beningn**
+**0 --> Malignant**
+"""
+
+bdata.groupby('diagnosis').mean()
+
+"""**separating features and columns**"""
+
+X = bdata.drop(columns = 'diagnosis', axis= 1)
+Y =bdata['diagnosis']
+
+print(X)
+
+print(Y)
+
+"""**Spliting the data into training and test data**"""
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=2)
+
+print(X.shape, X_train.shape, X_test.shape)
+
+"""**Training Model**
+
+**Logistic Regression**
+"""
+
+model = LogisticRegression()
+
+# training logistic regression model using training data
+model.fit(X_train, Y_train)
+
+"""**Model Evaluation**
+
+**Accuracy Score**
+"""
+
+# Accuracy on training data
+X_train_prediction= model.predict(X_train)
+training_data_accuracy = accuracy_score(Y_train, X_train_prediction)
+
+print('Accuracy on training data =', training_data_accuracy)
+
+# Accuracy on testing data
+X_test_prediction= model.predict(X_test)
+testing_data_accuracy = accuracy_score(Y_test, X_test_prediction)
+
+print('Accuracy on testing data =', testing_data_accuracy)
+
+"""**Building Predictive system**"""
+
+input_data=(18.25,19.98,119.6,1040,0.09463,0.109,0.1127,0.074,0.1794,0.05742,0.4467,0.7732,3.18,53.91,0.004314,0.01382,0.02254,0.01039,0.01369,0.002179,22.88,27.66,153.2,1606,0.1442,0.2576,0.3784,0.1932,0.3063,0.08368)
+# change the input data into numpy array
+input_data_as_numpy_array = np.asarray(input_data)
+# replace the numpy array
+input_data_reshaped= input_data_as_numpy_array.reshape(1, -1)
+prediction = model.predict(input_data_reshaped)
+print(prediction)
+
+if (prediction[0]==0):
+  print('The brest cancer is Malignant')
+else:
+  print('The breast cancer is benign')
+
+"""**Saving the Model and Features using Pickle**"""
+
+# Save the model to disk
+model_filename = 'breast_cancer_model.pkl'
+with open(model_filename, 'wb') as model_file:
+    pickle.dump(model, model_file)
+
+# Save the feature names to disk
+feature_names_filename = 'breast_cancer_feature_names.pkl'
+with open(feature_names_filename, 'wb') as feature_file:
+    pickle.dump(X.columns.tolist(), feature_file)
+
+print(f"Model saved to {model_filename}")
+
+print(f"Feature names saved to {feature_names_filename}")
